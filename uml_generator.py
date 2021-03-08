@@ -24,10 +24,11 @@ class UmlGenerator(object):
             if "." not in argv:
                 sys.exit("passing a folder instead of a file to argvs list")
             else:
-                file_name = os.path.basename(argv.split(".")[0])
+                package_name = os.path.basename(argv.split(".")[0])
                 index = argvs.index(argv)
-
+                IndividualFiles(argvs, package_name,
+                                index).generate_uml_files()
                 if DEBUG_MODE:
-                    print("hit")
+                    pass
                 else:
-                    IndividualFiles(argvs, file_name, index)
+                    pass

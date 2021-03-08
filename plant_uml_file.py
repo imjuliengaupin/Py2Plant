@@ -1,26 +1,30 @@
 
-from constants import DEBUG_MODE, UML_PREFIX, UML_SUFFIX
+from constants import DEBUG_MODE
 
 
 class PlantUmlFile(object):
-    def __init__(self, py_files, file_name, index):
+    def __init__(self, py_files, package_name):
         self.py_files = py_files
-        self.file_name = file_name
-        self.index = index
+        self.package_name = package_name
+        self.classes = []
 
-        self.generate_uml_file()
+        # TEST define here or in pre_uml_content() ?
+        self.class_name = None
+        self.class_members = {}
 
     def __str__(self):
         pass
 
-    def generate_uml_file(self):
-        with open(f"plantuml/{self.file_name}.txt", "w") as uml_file:
-            if DEBUG_MODE:
-                print("hit")
-            else:
-                uml_file.write(f"{UML_PREFIX}\n")
+    def post_uml_content(self, uml_file):
+        for class_name, class_members in self.class_members.items():
+            for class_member in class_members:
+                if DEBUG_MODE:
+                    # TEST remove the '\n' ?
+                    print(f"{class_name} : {class_member}\n")
+                else:
+                    uml_file.write(f"{class_name} : {class_member}\n")
 
-                # TODO uml content generation
-
-                uml_file.write(f"{UML_SUFFIX}")
-                uml_file.close()
+        if DEBUG_MODE:
+            print("}")
+        else:
+            uml_file.write("}\n")
