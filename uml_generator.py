@@ -11,6 +11,9 @@ class UmlGenerator(object):
     def __str__(self):
         pass
 
+    def get_package_name(self, argv):
+        return os.path.basename(argv.split(".")[0])
+
     def run(self, argvs):
         # if a sufficient number of arguments are not passed ...
         if len(argvs) < MIN_ARGS_REQUIRED:
@@ -24,11 +27,12 @@ class UmlGenerator(object):
             if "." not in argv:
                 sys.exit("passing a folder instead of a file to argvs list")
             else:
-                package_name = os.path.basename(argv.split(".")[0])
+                package_name = self.get_package_name(argv)
                 index = argvs.index(argv)
-                IndividualFiles(argvs, package_name,
-                                index).generate_uml_files()
+
                 if DEBUG_MODE:
-                    pass
+                    IndividualFiles(argvs, package_name,
+                                    index).generate_uml_files()
                 else:
-                    pass
+                    IndividualFiles(argvs, package_name,
+                                    index).generate_uml_files()

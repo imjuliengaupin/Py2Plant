@@ -1,5 +1,5 @@
 
-from constants import DEBUG_MODE, UML_PREFIX, UML_SUFFIX
+from constants import DEBUG_MODE, UML_PREFIX, UML_SUFFIX, CHILD_CLASS, PARENT_CLASS, NO_PARENT_CLASS, CLASS_MEMBER, CLASS_METHOD, CLASS_INSTANCE
 from plant_uml_file import PlantUmlFile
 
 
@@ -24,14 +24,45 @@ class IndividualFiles(PlantUmlFile):
                 uml_file.close()
 
     def get_uml_content(self, uml_file):
-        self.pre_uml_content(uml_file)
+        super().pre_uml_content(uml_file)
+        self.core_uml_content(uml_file)
         super().post_uml_content(uml_file)
 
-    def pre_uml_content(self, uml_file):
-        if DEBUG_MODE:
-            print(f"package {self.package_name} {{")
-        else:
-            # TEST define here or in super().__init__() ?
-            """self.class_name = None
-            self.class_members = {}"""
-            uml_file.write(f"package {self.package_name} {{\n")
+    def core_uml_content(self, uml_file):
+        # RESEARCH do i need to convert self to super ?
+        for line_of_code in open(self.py_files[self.index], "r"):
+            # for each line of code read, ignore the "\n" character escape sequence
+            if self.is_newline_found.match(line_of_code):
+                continue
+
+            # if a class that has a parent is found ...
+            class_found = self.is_class_found.match(line_of_code)
+            if class_found:
+                super().class_name_validation(class_found.group(
+                    CHILD_CLASS), class_found.group(PARENT_CLASS), uml_file)
+                continue
+
+            # if a class that has no parents is found ...
+            class_w_no_parent_found = self.is_no_parent_class_found.match(
+                line_of_code)
+            if class_w_no_parent_found:
+                super().class_name_validation(
+                    class_w_no_parent_found.group(NO_PARENT_CLASS), "", uml_file)
+                continue
+
+            # if a class member variable is found ...
+            class_member_found = self.is_class_member_found.match(line_of_code)
+            if class_member_found and self.class_name:
+                super().class_member_validation(class_member_found.group(CLASS_MEMBER))
+
+            # if a class method is found ...
+            class_method_found = self.is_class_method_found.match(line_of_code)
+            if class_method_found and self.class_name:
+                super().class_method_validation(class_method_found.group(CLASS_METHOD), uml_file)
+                continue
+
+            # if any class object instantiation is found ...
+            class_instantiation_found = self.is_class_instantiated.search(
+                line_of_code)
+            if class_instantiation_found and self.class_name:
+                super().class_instance_validation(class_instantiation_found.group(CLASS_INSTANCE))
