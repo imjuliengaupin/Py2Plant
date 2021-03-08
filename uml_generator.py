@@ -9,7 +9,7 @@ class UmlGenerator(object):
         self.run(argvs)
 
     def __str__(self):
-        pass
+        return super().__str__()
 
     def get_package_name(self, argv):
         return os.path.basename(argv.split(".")[0])

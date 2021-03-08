@@ -7,5 +7,8 @@ class SalaryEmployee(Employee):
         super().__init__(id, name)
         self.weekly_salary = weekly_salary
 
+    def __str__(self):
+        return str(f"""id: {self.id}\nemployee name: {self.name}\nweekly salary: {self.weekly_salary}""")
+
     def calculate_payroll(self):
         return self.weekly_salary

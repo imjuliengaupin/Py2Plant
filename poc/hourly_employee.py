@@ -8,5 +8,8 @@ class HourlyEmployee(Employee):
         self.hours_worked = hours_worked
         self.hour_rate = hour_rate
 
+    def __str__(self):
+        return str(f"""id: {self.id}\nemployee name: {self.name}\nhours worked: {self.hours_worked}\nhour rate: {self.hour_rate}""")
+
     def calculate_payroll(self):
         return self.hours_worked * self.hour_rate

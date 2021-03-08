@@ -9,7 +9,7 @@ class IndividualFiles(PlantUmlFile):
         self.index = index
 
     def __str__(self):
-        pass
+        return str(f"""file list: {self.py_files}\npackage name: {self.package_name}\nindex: {self.index}""")
 
     def generate_uml_files(self):
         with open(f"Py2Plant/plantuml/{self.package_name}.txt", "w") as uml_file:
@@ -27,9 +27,9 @@ class IndividualFiles(PlantUmlFile):
         super().pre_uml_content(uml_file)
         self.core_uml_content(uml_file)
         super().post_uml_content(uml_file)
+        super().post_uml_relationship_content(uml_file)
 
     def core_uml_content(self, uml_file):
-        # RESEARCH do i need to convert self to super ?
         for line_of_code in open(self.py_files[self.index], "r"):
             # for each line of code read, ignore the "\n" character escape sequence
             if self.is_newline_found.match(line_of_code):

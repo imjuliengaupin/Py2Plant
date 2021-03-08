@@ -26,11 +26,10 @@ class PlantUmlFile(object):
             r"((:?[A-Z]+[a-z0-9]+)+)\(.*\)")
 
         # TEST below regex compile pattern and how it works
-        # for implementation, refer is_class_attribute_validation()
         self.private_name_regex = re.compile(r"^_[\w\d_]+")
 
     def __str__(self):
-        pass
+        return str(f"""file list: {self.py_files}\npackage name: {self.package_name}\nclass name: {self.class_name}\nclasses: {self.classes}\nclasses (no parent): {self.no_parent_classes}\nclass members: {self.class_members}\nclass relationships: {self.class_relationships}\nparents: {self.parents}""")
 
     def pre_uml_content(self, uml_file):
         if DEBUG_MODE:
@@ -46,7 +45,6 @@ class PlantUmlFile(object):
         for class_name, class_members in self.class_members.items():
             for class_member in class_members:
                 if DEBUG_MODE:
-                    # TEST remove the '\n' ?
                     print(f"{class_name} : {class_member}")
                 else:
                     uml_file.write(f"{class_name} : {class_member}\n")
@@ -55,6 +53,23 @@ class PlantUmlFile(object):
             print("}")
         else:
             uml_file.write("}\n")
+
+    def post_uml_relationship_content(self, uml_file):
+        for child_class, parent_class in self.parents.items():
+            if DEBUG_MODE:
+                print(f"{parent_class} <|-- {child_class}")
+            else:
+                uml_file.write(f"{parent_class} <|-- {child_class}\n")
+
+        # TEST create a test case scenario
+        for related_class, classes in self.class_relationships.items():
+            for defined_class_in_file in classes:
+                if defined_class_in_file in self.classes and related_class != defined_class_in_file:
+                    if DEBUG_MODE:
+                        print(f"{related_class} -- {defined_class_in_file}")
+                    else:
+                        uml_file.write(
+                            f"{related_class} -- {defined_class_in_file}\n")
 
     def is_class_attribute_validation(self, class_attribute):
         if self.is_builtin_method.match(class_attribute):
@@ -108,8 +123,11 @@ class PlantUmlFile(object):
         else:
             uml_file.write(f"{self.class_name} : {class_method_name}()\n")
 
-    # if code scan identifies when a class object is instantiated ...
+    # FIXME graph visualization issue on multi-inheritance uml (individual files)
+    # e.g. employee <- salary employee <- commission employee
     def class_instance_validation(self, instantiated_class):
+        # if code scan identifies when a class object is instantiated ...
+        # RESEARCH https://stackoverflow.com/questions/52203260/plantuml-class-diagram-with-multiple-children-any-way-to-bifurcate-the-arrow
         if instantiated_class not in self.class_relationships[self.class_name]:
             self.class_relationships[self.class_name].append(
                 instantiated_class)
