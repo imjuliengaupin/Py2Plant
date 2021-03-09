@@ -17,6 +17,7 @@ class PlantUmlFile(object):
         # regexp's
         self.is_newline_found = re.compile(r"^\s*(:?$|#|raise|print)")
         self.is_builtin_method = re.compile(r"^__[\w_]+__")
+        self.is_private_class_member = re.compile(r"^_[\w\d_]+")
         self.is_class_found = re.compile(
             r"^class\s+([\w\d]+)\(\s*([\w\d\._]+)\s*\):")
         self.is_no_parent_class_found = re.compile(r"^class\s+([\w\d]+)\s*:")
@@ -25,18 +26,17 @@ class PlantUmlFile(object):
         self.is_class_instantiated = re.compile(
             r"((:?[A-Z]+[a-z0-9]+)+)\(.*\)")
 
-        # TEST below regex compile pattern and how it works
-        self.private_name_regex = re.compile(r"^_[\w\d_]+")
-
     def __str__(self):
         return str(f"""file list: {self.py_files}\npackage name: {self.package_name}\nclass name: {self.class_name}\nclasses: {self.classes}\nclasses (no parent): {self.no_parent_classes}\nclass members: {self.class_members}\nclass relationships: {self.class_relationships}\nparents: {self.parents}""")
 
     def pre_uml_content(self, uml_file):
+        # RESEARCH utilizing html/css for diagram components
+        # https://plantuml.com/component-diagram
+        # https://plantuml.com/style-evolution
         if DEBUG_MODE:
             print(f"package {self.package_name} {{")
         else:
-            # TEST define here or in __init__() ?
-            # NOTE by default, they are defined here
+            # TEST define here or in __init__() ? previously here by default
             # self.class_name = None
             # self.class_members = {}
             uml_file.write(f"package {self.package_name} {{\n")
@@ -61,35 +61,32 @@ class PlantUmlFile(object):
             else:
                 uml_file.write(f"{parent_class} <|-- {child_class}\n")
 
-        # TEST create a test case scenario
-        for related_class, classes in self.class_relationships.items():
+        # TEST create a test case scenario to understand how this works
+        """for related_class, classes in self.class_relationships.items():
             for defined_class_in_file in classes:
                 if defined_class_in_file in self.classes and related_class != defined_class_in_file:
                     if DEBUG_MODE:
                         print(f"{related_class} -- {defined_class_in_file}")
                     else:
                         uml_file.write(
-                            f"{related_class} -- {defined_class_in_file}\n")
+                            f"{related_class} -- {defined_class_in_file}\n")"""
 
     def is_class_attribute_validation(self, class_attribute):
         if self.is_builtin_method.match(class_attribute):
-            return "+" + class_attribute
-        elif self.private_name_regex.match(class_attribute):
-            return "-" + class_attribute
+            return f"+{class_attribute}"
+        elif self.is_private_class_member.match(class_attribute):
+            return f"-{class_attribute}"
         else:
-            return "+" + class_attribute
+            return f"+{class_attribute}"
 
     def class_name_validation(self, class_name, parent_class_name, uml_file):
-        # if a class is defined in a "package.class_name" format ...
-        if "." in parent_class_name:
-            # TODO create a test case for this scenario
-            # NOTE # can the split happen on class_name instead of parent_class_name? test this
+        # TEST create a test case scenario to understand how this works
+        # expecting a "package.class_name" format ?
+        """if "." in parent_class_name:
             package_and_class_name = parent_class_name.split(".")
             package_name = package_and_class_name[0:-1]
             selected_parent_class_name = package_and_class_name[-1]
-            parent_class_name = selected_parent_class_name
-
-            # print(f"package: {package_name}, class: {selected_parent_class_name}")
+            parent_class_name = selected_parent_class_name"""
 
         # if there are multiple definitions of the same class ...
         if class_name in self.classes:
@@ -97,6 +94,7 @@ class PlantUmlFile(object):
 
         self.class_name = class_name
         self.classes.append(class_name)
+        # FIXME defined as lists here, but dictionaries in __init__() ?
         self.class_relationships[class_name] = []
         self.class_members[class_name] = []
 
@@ -107,7 +105,6 @@ class PlantUmlFile(object):
 
         if parent_class_name not in self.no_parent_classes:
             self.parents[class_name] = parent_class_name
-            # print(f"{parent_class_name} <|-- {class_name}")
 
     def class_member_validation(self, class_member_name):
         class_member_name = self.is_class_attribute_validation(
